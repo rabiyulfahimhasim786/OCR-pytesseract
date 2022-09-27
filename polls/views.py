@@ -13,9 +13,9 @@ from rest_framework import status
 from .models import Dropbox
 #serilizers
 from .serializers import DropboxSerializer
-#import cv2
-#import pytesseract
-#from pytesseract import Output
+import cv2
+import pytesseract
+from pytesseract import Output
 def index(request):
     return HttpResponse("Hello, world!")
 
@@ -159,3 +159,32 @@ def imgtotext(request):
 #             res.append(i)
 #     print(res)
 #     return HttpResponse("http://127.0.0.1:8000"+rank)
+
+def xml(request):
+    documents = Dropbox.objects.all()
+    for obj in documents:
+        rank = obj.document.url
+        #print(rank)
+    print(rank)
+    file_name= rank
+    #URL = 'http://www.w3schools.com/css/trolltunga.jpg'
+    #img = Image.open('temp.jpg')
+    URL = "http://127.0.0.1:8000"+rank
+
+    with urllib.request.urlopen(URL) as url:
+        with open('temps.jpg', 'wb') as f:
+            f.write(url.read())
+    file_name = "temps.jpg"
+    #img = cv2.imread('sample.JPEG')
+    img = cv2.imread(file_name)
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    adaptiveThresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 15, 12)
+    config = r'--oem 1 --psm 3'
+    #config = 'tesseract stdin stdout -c tessedit_char_whitelist=abcdefghijklmnopqrstuvwxyz0123456789 -l eng --oem 1 --psm 3'
+    #pdf = pytesseract.image_to_pdf_or_hocr(adaptiveThresh, config=config, extension='pdf')
+    hocr = pytesseract.image_to_pdf_or_hocr(adaptiveThresh, config=config, extension='hocr')
+    #with open('test.xml',mode ='w+b') as file:
+    with open('./media/xml/test.xml',mode ='w+b') as file:
+        file.write(hocr)
+        file.close
+    return HttpResponse("Hello, world!")
